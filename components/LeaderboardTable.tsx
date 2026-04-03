@@ -76,9 +76,10 @@ export function LeaderboardTable({ mode, challengeDate, playerId, scope = "all" 
         return (
           <div
             key={row.id}
+            style={{ animationDelay: `${Math.min(index, 12) * 45}ms` }}
             className={clsx(
-              "glass-card flex items-center justify-between rounded-2xl px-4 py-3",
-              mine && "bg-cyan-400/15"
+              "leaderboard-entry glass-card flex items-center justify-between rounded-2xl px-4 py-3 hover:-translate-y-px",
+              mine && "bg-cyan-400/15 shadow-[0_0_24px_rgba(34,211,238,0.2)]"
             )}
           >
             <div>
@@ -86,7 +87,7 @@ export function LeaderboardTable({ mode, challengeDate, playerId, scope = "all" 
               <p className="text-sm font-bold uppercase tracking-wide">{row.users?.name ?? "Anonymous"}</p>
             </div>
             <div className="text-right">
-              <p className="font-black text-[var(--tertiary)]">Lv {row.level_reached}</p>
+              <p className="font-black text-(--tertiary)">Lv {row.level_reached}</p>
               <p className="text-xs text-soft">{row.score_value.toLocaleString()} pts</p>
             </div>
           </div>

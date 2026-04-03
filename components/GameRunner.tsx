@@ -165,7 +165,6 @@ export function GameRunner({ mode }: GameRunnerProps) {
         }, Math.max(100, diff.reactionWindowMs - (mode === "daily" ? 20 : 0)));
       } else {
         windowTimer.current = window.setTimeout(() => {
-          setOverlay("success");
           advanceSuccess(levelRef.current, streakRef.current, scoreRef.current);
         }, Math.max(100, diff.reactionWindowMs));
       }

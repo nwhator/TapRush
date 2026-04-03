@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Spline_Sans } from "next/font/google";
 import "./globals.css";
 import { GameSettingsProvider } from "@/components/providers/GameSettingsProvider";
@@ -6,7 +5,7 @@ import { GameSettingsProvider } from "@/components/providers/GameSettingsProvide
 const bodyFont = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-body" });
 const headlineFont = Spline_Sans({ subsets: ["latin"], variable: "--font-headline" });
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "TapRush: Mind Games",
   description: "Mobile-first infinite reaction game with social leaderboards.",
   icons: {
