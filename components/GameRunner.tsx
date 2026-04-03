@@ -10,7 +10,7 @@ import { trackEvent } from "@/lib/analytics";
 import { dailyChallengeConfig, ensureDailyChallenge, todayIsoDate } from "@/lib/daily";
 import { getDifficulty, pickCue, scoreFromLevel, shouldTriggerFakeOut } from "@/lib/game";
 import { ensurePlayerInSupabase, getLocalPlayer } from "@/lib/player";
-import { fetchPlayerRank, hasDailyAttempt, submitScore } from "@/lib/scores";
+import { fetchPlayerRank, getDailyAttemptCount, submitScore } from "@/lib/scores";
 import { useGameSettings } from "@/components/providers/GameSettingsProvider";
 import type { Cue, GameMode } from "@/types";
 
@@ -22,7 +22,8 @@ interface GameRunnerProps {
   mode: GameMode;
 }
 
-const DAILY_ATTEMPT_KEY = "taprush:dailyAttempt";
+const DAILY_ATTEMPT_KEY = "taprush:dailyAttempts";
+const DAILY_ATTEMPTS_MAX = 10;
 const BEST_KEY = "taprush:best";
 
 export function GameRunner({ mode }: GameRunnerProps) {
@@ -36,6 +37,7 @@ export function GameRunner({ mode }: GameRunnerProps) {
   const [cue, setCue] = useState<Cue>(pickCue(1));
   const [tapEnabled, setTapEnabled] = useState(false);
   const [dailyLocked, setDailyLocked] = useState(false);
+  const [dailyAttemptsUsed, setDailyAttemptsUsed] = useState(0);
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [rank, setRank] = useState<number | null>(null);
 
@@ -46,6 +48,7 @@ export function GameRunner({ mode }: GameRunnerProps) {
   const levelRef = useRef(1);
   const streakRef = useRef(0);
   const scoreRef = useRef(0);
+  const dailyAttemptsRef = useRef(0);
 
   const challenge = useMemo(() => dailyChallengeConfig(), []);
 
@@ -87,6 +90,17 @@ export function GameRunner({ mode }: GameRunnerProps) {
     overlayTimer.current = null;
   }, []);
 
+  const storeDailyAttempts = useCallback((userId: string, date: string, count: number) => {
+    window.localStorage.setItem(
+      DAILY_ATTEMPT_KEY,
+      JSON.stringify({
+        userId,
+        date,
+        count
+      })
+    );
+  }, []);
+
   const failRound = useCallback(async () => {
     clearTimers();
     setTapEnabled(false);
@@ -111,13 +125,23 @@ export function GameRunner({ mode }: GameRunnerProps) {
     const nextRank = await fetchPlayerRank(mode, player.id, mode === "daily" ? challenge.date : undefined);
     setRank(nextRank);
 
+    if (mode === "daily") {
+      const nextAttempts = Math.min(DAILY_ATTEMPTS_MAX, dailyAttemptsRef.current + 1);
+      setDailyAttemptsUsed(nextAttempts);
+      dailyAttemptsRef.current = nextAttempts;
+      storeDailyAttempts(player.id, challenge.date, nextAttempts);
+      if (nextAttempts >= DAILY_ATTEMPTS_MAX) {
+        setDailyLocked(true);
+      }
+    }
+
     if (scoreRef.current > best) {
       setBest(scoreRef.current);
       window.localStorage.setItem(BEST_KEY, String(scoreRef.current));
     }
 
     trackEvent("run_failed", { level: levelRef.current, score: scoreRef.current, mode });
-  }, [best, challenge.date, clearTimers, mode, playSound]);
+  }, [best, challenge.date, clearTimers, mode, playSound, storeDailyAttempts]);
 
   const advanceSuccess = useCallback(
     (currentLevel: number, currentStreak: number, currentScore: number) => {
@@ -182,6 +206,10 @@ export function GameRunner({ mode }: GameRunnerProps) {
   }, [level, score, streak]);
 
   useEffect(() => {
+    dailyAttemptsRef.current = dailyAttemptsUsed;
+  }, [dailyAttemptsUsed]);
+
+  useEffect(() => {
     const player = getLocalPlayer();
     setPlayerId(player.id);
     void ensurePlayerInSupabase(player);
@@ -194,20 +222,33 @@ export function GameRunner({ mode }: GameRunnerProps) {
       setBest(savedBest);
     }
 
-    const attemptDate = window.localStorage.getItem(DAILY_ATTEMPT_KEY);
-    if (mode === "daily" && attemptDate === todayIsoDate()) {
-      setDailyLocked(true);
-      setPhase("failed");
-      return;
-    }
-
     if (mode === "daily") {
-      void hasDailyAttempt(player.id, todayIsoDate()).then((alreadyPlayed) => {
-        if (alreadyPlayed) {
+      const today = todayIsoDate();
+      let localAttempts = 0;
+      const raw = window.localStorage.getItem(DAILY_ATTEMPT_KEY);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw) as { userId?: string; date?: string; count?: number };
+          if (parsed.userId === player.id && parsed.date === today) {
+            localAttempts = parsed.count ?? 0;
+          }
+        } catch {
+          localAttempts = 0;
+        }
+      }
+
+      void getDailyAttemptCount(player.id, today).then((remoteAttempts) => {
+        const attemptsUsed = Math.max(localAttempts, remoteAttempts);
+        setDailyAttemptsUsed(attemptsUsed);
+        dailyAttemptsRef.current = attemptsUsed;
+        storeDailyAttempts(player.id, today, attemptsUsed);
+
+        if (attemptsUsed >= DAILY_ATTEMPTS_MAX) {
           setDailyLocked(true);
           setPhase("failed");
           return;
         }
+
         setPhase("waiting");
         runRound();
       });
@@ -221,14 +262,7 @@ export function GameRunner({ mode }: GameRunnerProps) {
     return () => {
       clearTimers();
     };
-  }, [clearTimers, mode, runRound]);
-
-  useEffect(() => {
-    if (phase === "failed" && mode === "daily" && !dailyLocked) {
-      window.localStorage.setItem(DAILY_ATTEMPT_KEY, todayIsoDate());
-      setDailyLocked(true);
-    }
-  }, [dailyLocked, mode, phase]);
+  }, [clearTimers, mode, runRound, storeDailyAttempts]);
 
   const onTap = useCallback(() => {
     playSound("tap");
@@ -266,7 +300,7 @@ export function GameRunner({ mode }: GameRunnerProps) {
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Mode</p>
           <h1 className="text-3xl font-black uppercase tracking-tight">{mode === "arcade" ? "Arcade Rush" : `Daily ${challenge.title}`}</h1>
         </div>
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--secondary)]">{phase.toUpperCase()}</p>
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-(--secondary)">{phase.toUpperCase()}</p>
       </div>
 
       <ScoreDisplay score={score} best={best} />
@@ -286,7 +320,11 @@ export function GameRunner({ mode }: GameRunnerProps) {
             disabled={mode === "daily" && dailyLocked}
             className="kinetic-button w-full rounded-full px-4 py-4 text-sm font-black uppercase tracking-[0.2em] disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {mode === "daily" && dailyLocked ? "Daily Attempt Used" : "Instant Replay"}
+            {mode === "daily" && dailyLocked
+              ? "Daily Attempts Exhausted"
+              : mode === "daily"
+                ? `Instant Replay (${Math.max(0, DAILY_ATTEMPTS_MAX - dailyAttemptsUsed)} left)`
+                : "Instant Replay"}
           </button>
           <ShareButtons mode={mode === "arcade" ? "Arcade" : "Daily"} level={level} rank={rank} />
           <p className="text-[11px] text-soft">Player ID: {playerId?.slice(0, 8) ?? "-"}</p>

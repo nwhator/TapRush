@@ -9,7 +9,7 @@ TapRush drops players into an infinite reaction gauntlet where cues get tighter,
 ## Why This Hits
 
 - Infinite arcade runs with automatic difficulty scaling
-- Daily mode with one-attempt pressure and global shared challenge
+- Daily mode with up to 10 attempts per day and global shared challenge
 - Realtime Supabase leaderboards for global and daily rankings
 - One-tap instant replay flow tuned for short addictive sessions
 - Share-ready result cards for WhatsApp, X, and copy link
@@ -63,13 +63,13 @@ Schema includes:
 - `scores`: run results for arcade and daily
 - `daily_challenges`: seeded daily challenge payload
 - row-level security policies
-- partial unique index to enforce one daily attempt per user/date
+- indexed daily attempt counts per user/date for fast limit checks
 
 ## Routes
 
 - `/`: home splash, quick play, and live top entries
 - `/game`: infinite arcade mode
-- `/daily`: one-attempt daily challenge
+- `/daily`: daily challenge with up to 10 attempts
 - `/leaderboard`: global, daily, and friends scope tabs
 - `/settings`: theme, sound, and tap effect controls
 

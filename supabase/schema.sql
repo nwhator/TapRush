@@ -43,8 +43,10 @@ create index if not exists scores_daily_idx
   on public.scores (challenge_date, score_value desc)
   where mode = 'daily';
 
-create unique index if not exists scores_one_daily_attempt_idx
-  on public.scores (user_id, challenge_date)
+drop index if exists public.scores_one_daily_attempt_idx;
+
+create index if not exists scores_daily_user_date_idx
+  on public.scores (user_id, challenge_date, created_at desc)
   where mode = 'daily';
 
 alter table public.users enable row level security;

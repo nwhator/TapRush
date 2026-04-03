@@ -68,7 +68,12 @@ export async function fetchPlayerRank(mode: GameMode, userId: string, challengeD
 }
 
 export async function hasDailyAttempt(userId: string, challengeDate: string) {
-  if (!supabase) return false;
+  const count = await getDailyAttemptCount(userId, challengeDate);
+  return count > 0;
+}
+
+export async function getDailyAttemptCount(userId: string, challengeDate: string) {
+  if (!supabase) return 0;
 
   const { count } = await supabase
     .from("scores")
@@ -77,7 +82,7 @@ export async function hasDailyAttempt(userId: string, challengeDate: string) {
     .eq("mode", "daily")
     .eq("challenge_date", challengeDate);
 
-  return Boolean(count && count > 0);
+  return count ?? 0;
 }
 
 export async function fetchPlayerStats(userId: string): Promise<PlayerStats> {

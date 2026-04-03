@@ -48,9 +48,13 @@ function randomBetween(min: number, max: number) {
 }
 
 export function getDifficulty(level: number): DifficultyState {
-  const reactionWindowMs = Math.max(MIN_WINDOW, BASE_WINDOW - level * randomBetween(5, 10));
-  const fakeOutProbability = Math.min(0.85, BASE_FAKE_OUT + level * (randomBetween(2, 5) / 100));
-  const delayBeforeCueMs = Math.max(120, BASE_DELAY + randomBetween(-120, 420) + level * 8);
+  // Start forgiving, then accelerate the curve after the first few levels.
+  const effectiveLevel = Math.max(0, level - 1);
+  const ramp = Math.pow(effectiveLevel, 1.18);
+
+  const reactionWindowMs = Math.max(MIN_WINDOW, BASE_WINDOW - Math.floor(ramp * randomBetween(4, 8)));
+  const fakeOutProbability = Math.min(0.85, BASE_FAKE_OUT + ramp * (randomBetween(1, 3) / 100));
+  const delayBeforeCueMs = Math.max(140, BASE_DELAY + randomBetween(-100, 360) + Math.floor(ramp * 6));
 
   return {
     level,
@@ -61,11 +65,11 @@ export function getDifficulty(level: number): DifficultyState {
 }
 
 export function pickCue(level: number) {
-  if (level < 3) {
+  if (level < 6) {
     return cues[Math.floor(Math.random() * 2)];
   }
 
-  if (level < 8) {
+  if (level < 12) {
     return cues[Math.floor(Math.random() * 3)];
   }
 
