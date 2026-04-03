@@ -1,6 +1,19 @@
 import type { GameMode, PlayerStats, ScoreRow } from "@/types";
 import { supabase } from "@/lib/supabase";
 
+type RawLeaderboardRow = Omit<ScoreRow, "users"> & {
+  users?:
+    | {
+        name: string | null;
+        avatar: string | null;
+      }
+    | Array<{
+        name: string | null;
+        avatar: string | null;
+      }>
+    | null;
+};
+
 export async function submitScore(input: {
   userId: string;
   level: number;
@@ -35,7 +48,17 @@ export async function fetchLeaderboard(mode: GameMode, challengeDate?: string, l
   }
 
   const { data } = await query;
-  return (data ?? []) as ScoreRow[];
+  const rows = (data ?? []) as unknown as RawLeaderboardRow[];
+
+  return rows.map((row) => {
+    const relation = row.users;
+    const user = Array.isArray(relation) ? (relation[0] ?? null) : (relation ?? null);
+
+    return {
+      ...row,
+      users: user
+    };
+  });
 }
 
 export async function fetchPlayerRank(mode: GameMode, userId: string, challengeDate?: string) {
