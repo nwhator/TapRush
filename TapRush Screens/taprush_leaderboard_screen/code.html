@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700;800;900&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary": "#47001f",
+                    "surface-bright": "#2c2c2c",
+                    "on-surface-variant": "#adaaaa",
+                    "secondary-dim": "#e30071",
+                    "on-secondary-fixed-variant": "#a1004e",
+                    "secondary-container": "#ba005b",
+                    "surface-container-high": "#20201f",
+                    "primary": "#c1fffe",
+                    "primary-fixed": "#00f5f5",
+                    "outline-variant": "#484847",
+                    "on-primary-fixed": "#004343",
+                    "surface-tint": "#c1fffe",
+                    "on-secondary-fixed": "#6c0032",
+                    "error-container": "#9f0519",
+                    "surface-container-lowest": "#000000",
+                    "surface-variant": "#262626",
+                    "tertiary-dim": "#49e043",
+                    "inverse-primary": "#006a6a",
+                    "surface-container-highest": "#262626",
+                    "on-secondary-container": "#fff5f6",
+                    "tertiary-fixed": "#59ee50",
+                    "on-error-container": "#ffa8a3",
+                    "inverse-on-surface": "#565555",
+                    "on-primary-fixed-variant": "#006262",
+                    "background": "#0e0e0e",
+                    "tertiary": "#69fd5d",
+                    "on-tertiary-fixed": "#003e03",
+                    "on-primary": "#006767",
+                    "on-tertiary-fixed-variant": "#005f07",
+                    "inverse-surface": "#fcf9f8",
+                    "surface-dim": "#0e0e0e",
+                    "secondary-fixed-dim": "#ffadc2",
+                    "on-tertiary-container": "#005406",
+                    "on-background": "#ffffff",
+                    "tertiary-fixed-dim": "#49e043",
+                    "error-dim": "#d7383b",
+                    "secondary-fixed": "#ffc1d0",
+                    "primary-container": "#00ffff",
+                    "tertiary-container": "#59ee50",
+                    "secondary": "#ff6b9b",
+                    "on-primary-container": "#005d5d",
+                    "outline": "#767575",
+                    "surface-container": "#1a1a1a",
+                    "on-surface": "#ffffff",
+                    "error": "#ff716c",
+                    "on-error": "#490006",
+                    "primary-fixed-dim": "#00e6e6",
+                    "surface": "#0e0e0e",
+                    "primary-dim": "#00e6e6",
+                    "surface-container-low": "#131313",
+                    "on-tertiary": "#005e07"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Spline Sans"],
+                    "body": ["Plus Jakarta Sans"],
+                    "label": ["Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .text-glow-primary {
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.8);
+        }
+        .bg-glass {
+            backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 py-4 w-full bg-transparent backdrop-blur-xl no-border bg-gradient-to-b from-black/80 to-transparent">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-cyan-400" data-icon="bolt">bolt</span>
+<h1 class="font-['Spline_Sans'] tracking-tighter uppercase font-black text-2xl italic tracking-widest text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">TAPRUSH</h1>
+</div>
+<button class="hover:scale-110 hover:text-white transition-all duration-300 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-neutral-500" data-icon="settings">settings</span>
+</button>
+</header>
+<main class="pt-24 px-6">
+<!-- Hero Title Section -->
+<div class="mb-8">
+<h2 class="font-headline text-5xl font-extrabold tracking-tighter uppercase mb-1">Hall of Fame</h2>
+<div class="flex items-center gap-2">
+<span class="w-12 h-[2px] bg-primary"></span>
+<p class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold">Competitive Season 04</p>
+</div>
+</div>
+<!-- Segmented Tab Navigation -->
+<div class="flex p-1 bg-surface-container-low rounded-full mb-8 max-w-md">
+<button class="flex-1 py-3 rounded-full text-xs font-bold tracking-widest bg-primary-container text-on-primary-container shadow-[0_0_15px_rgba(0,255,255,0.2)]">GLOBAL</button>
+<button class="flex-1 py-3 rounded-full text-xs font-bold tracking-widest text-on-surface-variant hover:text-on-surface transition-colors">DAILY</button>
+<button class="flex-1 py-3 rounded-full text-xs font-bold tracking-widest text-on-surface-variant hover:text-on-surface transition-colors">FRIENDS</button>
+</div>
+<!-- Top 3 Podium Cards -->
+<div class="grid grid-cols-3 gap-4 mb-10 items-end">
+<!-- Rank 2 -->
+<div class="flex flex-col items-center gap-3">
+<div class="relative">
+<div class="w-16 h-16 rounded-full overflow-hidden border-2 border-secondary/40">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="close-up portrait of a young man with a cool tech aesthetic and neon blue lighting on his face" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8QcehoTzKuUjvrmEGKFJQaA6c_NBwjkJ7m_BgPSrDFfw85BAmzYCX6Li8CaMjjpWQqQ-EpanzAJKnPuYXYIKYxsPULg4bQMccncFJ0WrDvQa7wzy05_wR6ZGDF9_Dwrjh5YNuRzAjXt3jEV2KyiGKMHR-fWvFjaW8EvLjeK9dheC0UCAGsY2x58KEcke3UPkj2BsxiGSG2odToUwKJRgY6suMDkF6WKLMBM5-5ETXelQc6q8Cy-9QtBii6N24s0QPWkHBEmBxXoU"/>
+</div>
+<div class="absolute -bottom-2 -right-2 bg-surface-container-highest w-7 h-7 rounded-full flex items-center justify-center border border-secondary/50">
+<span class="text-xs font-black text-secondary">2</span>
+</div>
+</div>
+<div class="text-center">
+<p class="text-[10px] font-bold uppercase text-on-surface-variant mb-1">Vortex_X</p>
+<p class="font-headline text-lg font-bold text-secondary">LV. 88</p>
+</div>
+</div>
+<!-- Rank 1 -->
+<div class="flex flex-col items-center gap-4">
+<div class="relative">
+<div class="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-primary via-tertiary to-primary shadow-[0_0_30px_rgba(0,255,255,0.3)]">
+<div class="w-full h-full rounded-full overflow-hidden border-2 border-black">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="vibrant portrait of a woman with neon pink hair and digital interface reflections in her eyes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOaWH4_m6HfOgYCzDih5yjih-2kSBhgCooGPD1J-su8Ob7rHJ29wY5tqP8LZeCqYnZlopNFS7t3kEHPD8kLLEB0aJ1nJmTcyGwlxB1OEAA5_SuAWxtqVCU8MGO2Z9Tbn-dkYpXY7VG1YG7f69AGOHCu0F7yl1IvQltWnsJBhrY_qk37khw9kby38Duhnxojd7-uSbkyxHQKps2sErkj7puhunXLTxLc4Lj_STwSebE4QCKqb4k-DA3cAkwc-fLBJxNktk85lWcw-M"/>
+</div>
+</div>
+<div class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-primary-container text-on-primary-container px-3 py-1 rounded-full flex items-center justify-center border-2 border-black">
+<span class="text-xs font-black">CHAMPION</span>
+</div>
+</div>
+<div class="text-center">
+<p class="text-xs font-black uppercase text-on-surface tracking-tighter mb-1">CyberQueen_99</p>
+<p class="font-headline text-3xl font-black text-primary text-glow-primary">LV. 94</p>
+</div>
+</div>
+<!-- Rank 3 -->
+<div class="flex flex-col items-center gap-3">
+<div class="relative">
+<div class="w-16 h-16 rounded-full overflow-hidden border-2 border-tertiary/40">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="professional headshot of a man with minimalist styling and subtle green ambient lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsuAc4BL8GgcLcMvdR2dhgOFWYlmL0qo2OMuCQPHztpQw2qfN7cZEHEEnuei7Yy-CNzrdUimy6Tt3_UI6TjPLWxyeJACU_4cXJL2hXkAuGJUH2nfpovh2A7Hg0rOFqTqnF25t7_MULcp0mQdCH2NPlVSZb3CpmsR8Do-FReuJox7AdLm1hSg91WGdEli-ZPOqRrep2olMcGfItpg2xr0NIWMg8lijsHSI0CkKpKlCgGWzBqMy1Q00bC9uEldQkIXK4ZRF7UkOtMb0"/>
+</div>
+<div class="absolute -bottom-2 -right-2 bg-surface-container-highest w-7 h-7 rounded-full flex items-center justify-center border border-tertiary/50">
+<span class="text-xs font-black text-tertiary">3</span>
+</div>
+</div>
+<div class="text-center">
+<p class="text-[10px] font-bold uppercase text-on-surface-variant mb-1">RushKing</p>
+<p class="font-headline text-lg font-bold text-tertiary">LV. 85</p>
+</div>
+</div>
+</div>
+<!-- Leaderboard List -->
+<div class="space-y-4">
+<!-- Rank 4 -->
+<div class="flex items-center justify-between p-4 rounded-xl bg-surface-container-low transition-all hover:bg-surface-container-high group">
+<div class="flex items-center gap-4">
+<span class="font-headline text-xl font-bold text-on-surface-variant w-6 italic">04</span>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden">
+<img alt="User" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" data-alt="close-up of a stylish person with sunglasses reflecting neon lights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuBFPivEmTKacwROmep3tBBzopLrg0BDG8Us_zhENXUnm8ZQAE0iqxtt4rztD5RPoYvDeJuEWQ-k6hj2PmzgP_gZGT96YZkFVxtRshTTdJaRSzgiKNBy85R8a7bO4AApuDlG7E_Mky2T1zCa4OgmYgU5Ch3e9XGyD3dsYU3JW_s6_drfdlrXtHH6XWSgKDPJSeGl1GdOzoXzTueLRezwq5iZN64Lwl99Yz5l82deU2J1Dev-k84nWoCV28YnyxQJQETq_Z7PHq958"/>
+</div>
+<div>
+<p class="text-sm font-bold uppercase tracking-tight">NeonPulse</p>
+<p class="text-[10px] text-on-surface-variant tracking-widest font-black uppercase">PRO PLAYER</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-headline text-lg font-bold">LV. 72</p>
+<div class="h-1 w-full bg-surface-variant rounded-full mt-1">
+<div class="h-full bg-primary w-3/4 rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Rank 5 -->
+<div class="flex items-center justify-between p-4 rounded-xl bg-surface-container-low transition-all hover:bg-surface-container-high group">
+<div class="flex items-center gap-4">
+<span class="font-headline text-xl font-bold text-on-surface-variant w-6 italic">05</span>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden">
+<img alt="User" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" data-alt="artistic portrait of a woman with dramatic shadows and blue lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdJP987GDQj4KNNdTb-dSJCv_aqS6KMqbaQlyNiNZ7RcmLNq96MN5xbT8qs769voZ9Hz1r3kHdSanLfO61o5K-yoEuETxN6V8u4hWTNMdou8ZRskytZuF6toF-OSpB_SuNLjSVuzG5BQACOracr3RUzSftTiF5gKKNeYC6DPCDVipFq5k9-wykXqleN3Yp_O_LRZjJ6qIQ8K25q1Eu5JVIt68Dk5-sB_5NntztwbCOZJ0066gN7oYVJg8eGrKDGPQGFaOimXW5u44"/>
+</div>
+<div>
+<p class="text-sm font-bold uppercase tracking-tight">ShadowMind</p>
+<p class="text-[10px] text-on-surface-variant tracking-widest font-black uppercase">VETERAN</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-headline text-lg font-bold">LV. 68</p>
+<div class="h-1 w-full bg-surface-variant rounded-full mt-1">
+<div class="h-full bg-primary w-2/3 rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Rank 6 -->
+<div class="flex items-center justify-between p-4 rounded-xl bg-surface-container-low transition-all hover:bg-surface-container-high group">
+<div class="flex items-center gap-4">
+<span class="font-headline text-xl font-bold text-on-surface-variant w-6 italic">06</span>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden">
+<img alt="User" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" data-alt="clean minimal portrait of a man with soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnUuAphFgiA-Fv5QDL0CUkJw6Iz7-Rvi1yqPB9PzVlywqOi-1t2d1pHJH_6NfEJwMW6Lz__-teZOIpR1SVKkTRxIHsq8c1m_nVZjBOKugK1m5OA2r1F534BD-no0vI1N767Ed2I0qOV9x1gitnR05zSSITqZQ8b6RdFBfPkyHXASickqKr59SO6N1QV60pggA77Eq_TnQPN7JcZeBVZbP1MzBzqOPwiTdzHsZjQYBMMvEXsrjs1cEWPw_m-QG9hijIQ5G66icfkvc"/>
+</div>
+<div>
+<p class="text-sm font-bold uppercase tracking-tight">FastTapper</p>
+<p class="text-[10px] text-on-surface-variant tracking-widest font-black uppercase">ELITE</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-headline text-lg font-bold">LV. 61</p>
+<div class="h-1 w-full bg-surface-variant rounded-full mt-1">
+<div class="h-full bg-primary w-1/2 rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Rank 7 -->
+<div class="flex items-center justify-between p-4 rounded-xl bg-surface-container-low transition-all hover:bg-surface-container-high group">
+<div class="flex items-center gap-4">
+<span class="font-headline text-xl font-bold text-on-surface-variant w-6 italic">07</span>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden">
+<img alt="User" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" data-alt="vivid portrait of a woman in an urban setting with neon billboards background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBusluSPvOsZjMX_9By7r2uZf3r0IE14wJzZ17_9ZU4iR3RrnrXU22izBbxTziybTTOlPveUb6p5iHA55Fln1LUfj7Wa5z4kXYgW6OGnt3A6gsNBpOQvnGA2Ow0vPpROG4_4bpSnngVGFnV_Jer_NfzB5nX2U0FLRqRugU2J-acPq08pMjRsLkaKLWv_uzOZecSC59Ls2xJKhR2c9FTo9yJ8A6dj3D9WJ-CcwGsdOhUEw0mrGce43X4nyupbc3wPhvKv9uI-WQHppA"/>
+</div>
+<div>
+<p class="text-sm font-bold uppercase tracking-tight">Glitch_Seeker</p>
+<p class="text-[10px] text-on-surface-variant tracking-widest font-black uppercase">CHALLENGER</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-headline text-lg font-bold">LV. 55</p>
+<div class="h-1 w-full bg-surface-variant rounded-full mt-1">
+<div class="h-full bg-primary w-1/3 rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Sticky Personal Rank Bar -->
+<div class="fixed bottom-[88px] left-0 w-full px-4 z-40">
+<div class="max-w-md mx-auto bg-primary text-on-primary-container px-6 py-4 rounded-2xl flex items-center justify-between shadow-[0_-10px_30px_rgba(0,255,255,0.2)]">
+<div class="flex items-center gap-4">
+<span class="font-headline text-2xl font-black italic">42</span>
+<div class="h-10 w-[2px] bg-on-primary-container/20"></div>
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full border-2 border-on-primary-container overflow-hidden">
+<img alt="Me" class="w-full h-full object-cover" data-alt="artistic self-portrait with glowing geometric shapes in the background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAu14mPmZQ0ofZG41SBI3gqgBdemHRWhqyR_ETUI3laGPEjlOqwkfP8_LdHuwF8yOGYD_DzxAoXZiALDTkfPssoDnZLsQDijWx9CRYfDJ6wLvMusoplyEmWLfKpD8p2hNyuEnvapMXYsg4wvtY91Pvm0nc02IBF9xvuK6udrLhO0eVZ1JMjyexkz-MSHXqVHYaqvrGFjweDUOhnIY2Kddl3wwnQj4d-qurfFQIxmdFaGZ_Dfr75QYIlM64ozMzLsRwxxhBTridy1iQ"/>
+</div>
+<div>
+<p class="text-xs font-black uppercase leading-none">YOU</p>
+<p class="text-lg font-headline font-black tracking-tighter">ZENITH_RUSH</p>
+</div>
+</div>
+</div>
+<div class="text-right">
+<p class="text-[10px] font-black uppercase mb-0.5">PROGRESS</p>
+<p class="text-xl font-headline font-black italic">LV. 14</p>
+</div>
+</div>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#0e0e0e]/90 backdrop-blur-2xl no-border shadow-[0_-4px_24px_rgba(0,255,255,0.1)] rounded-t-[2rem]">
+<div class="flex items-center justify-center text-neutral-600 w-14 h-14 hover:text-cyan-200 transition-colors active:scale-95 duration-100">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+</div>
+<div class="flex items-center justify-center bg-cyan-400/20 text-cyan-400 rounded-full w-14 h-14 shadow-[0_0_15px_rgba(0,255,255,0.4)] active:scale-95 duration-100">
+<span class="material-symbols-outlined" data-icon="leaderboard" style="font-variation-settings: 'FILL' 1;">leaderboard</span>
+</div>
+<div class="flex items-center justify-center text-neutral-600 w-14 h-14 hover:text-cyan-200 transition-colors active:scale-95 duration-100">
+<span class="material-symbols-outlined" data-icon="emoji_events">emoji_events</span>
+</div>
+<div class="flex items-center justify-center text-neutral-600 w-14 h-14 hover:text-cyan-200 transition-colors active:scale-95 duration-100">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</div>
+</nav>
+</body></html>
