@@ -6,12 +6,12 @@
   --surface-high: #20201f;
   --surface-top: #262626;
   --text: #ffffff;
-  --text-soft: #adaaaa;
+  --text-soft: #c7c3c7;
   --primary: #c1fffe;
-  --primary-strong: #00ffff;
-  --primary-dim: #00e6e6;
-  --secondary: #ff6b9b;
-  --tertiary: #69fd5d;
+  --primary-strong: #40ffff;
+  --primary-dim: #13ecec;
+  --secondary: #ff8bb3;
+  --tertiary: #89ff7d;
 }
 
 :root[data-theme="light"] {
