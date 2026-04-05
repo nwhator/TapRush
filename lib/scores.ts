@@ -23,13 +23,54 @@ export async function submitScore(input: {
 }) {
   if (!supabase) return;
 
-  await supabase.from("scores").insert({
-    user_id: input.userId,
-    level_reached: input.level,
-    score_value: input.score,
-    mode: input.mode,
-    challenge_date: input.challengeDate ?? null
-  });
+  // Look for the user's existing entry for this scope.
+  let existingQuery = supabase
+    .from("scores")
+    .select("id, level_reached, score_value, attempt_count")
+    .eq("user_id", input.userId)
+    .eq("mode", input.mode);
+
+  if (input.challengeDate) {
+    existingQuery = existingQuery.eq("challenge_date", input.challengeDate);
+  } else {
+    existingQuery = existingQuery.is("challenge_date", null);
+  }
+
+  const { data: existing } = await existingQuery.maybeSingle();
+
+  if (existing) {
+    // Always increment the attempt counter.
+    // Update level/score only when the new result is strictly better.
+    const isBetter =
+      input.level > existing.level_reached ||
+      (input.level === existing.level_reached && input.score > existing.score_value);
+
+    const updateData: Record<string, unknown> = {
+      attempt_count: (existing.attempt_count ?? 1) + 1
+    };
+
+    if (isBetter) {
+      updateData.level_reached = input.level;
+      updateData.score_value = input.score;
+    }
+
+    const { error: updateError } = await supabase.from("scores").update(updateData).eq("id", existing.id);
+    if (updateError) {
+      console.error("[submitScore] failed to update score row:", updateError.message);
+    }
+  } else {
+    const { error: insertError } = await supabase.from("scores").insert({
+      user_id: input.userId,
+      level_reached: input.level,
+      score_value: input.score,
+      mode: input.mode,
+      challenge_date: input.challengeDate ?? null,
+      attempt_count: 1
+    });
+    if (insertError) {
+      console.error("[submitScore] failed to insert score row:", insertError.message);
+    }
+  }
 }
 
 export async function fetchLeaderboard(mode: GameMode, challengeDate?: string, limit = 50) {
@@ -75,14 +116,15 @@ export async function hasDailyAttempt(userId: string, challengeDate: string) {
 export async function getDailyAttemptCount(userId: string, challengeDate: string) {
   if (!supabase) return 0;
 
-  const { count } = await supabase
+  const { data } = await supabase
     .from("scores")
-    .select("id", { count: "exact", head: true })
+    .select("attempt_count")
     .eq("user_id", userId)
     .eq("mode", "daily")
-    .eq("challenge_date", challengeDate);
+    .eq("challenge_date", challengeDate)
+    .maybeSingle();
 
-  return count ?? 0;
+  return data?.attempt_count ?? 0;
 }
 
 export async function fetchPlayerStats(userId: string): Promise<PlayerStats> {
@@ -97,17 +139,19 @@ export async function fetchPlayerStats(userId: string): Promise<PlayerStats> {
 
   const { data } = await supabase
     .from("scores")
-    .select("mode, level_reached, score_value")
+    .select("mode, level_reached, score_value, attempt_count")
     .eq("user_id", userId)
     .limit(500);
 
   if (!data?.length) return fallback;
 
+  let totalRuns = 0;
   let arcadeBestLevel = 0;
   let dailyBestLevel = 0;
   let bestScore = 0;
 
   for (const row of data) {
+    totalRuns += row.attempt_count ?? 1;
     if (row.mode === "arcade") {
       arcadeBestLevel = Math.max(arcadeBestLevel, row.level_reached ?? 0);
     }
@@ -118,7 +162,7 @@ export async function fetchPlayerStats(userId: string): Promise<PlayerStats> {
   }
 
   return {
-    totalRuns: data.length,
+    totalRuns,
     arcadeBestLevel,
     dailyBestLevel,
     bestScore

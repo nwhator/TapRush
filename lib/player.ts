@@ -7,6 +7,8 @@ const ONBOARDING_DONE_KEY = "taprush:onboardingDone";
 
 function randomName() {
   const words = ["Neon", "Rush", "Pulse", "Flash", "Spark", "Volt"];
+  // Math.random() is intentionally used here: the suffix is a cosmetic
+  // display-name component, not a security token or secret.
   const suffix = Math.floor(100 + Math.random() * 900);
   return `${words[Math.floor(Math.random() * words.length)]}_${suffix}`;
 }
@@ -72,10 +74,40 @@ export function updatePlayerProfile(patch: Partial<PlayerProfile>) {
   return updated;
 }
 
-export async function ensurePlayerInSupabase(player: PlayerProfile) {
-  if (!supabase) return;
+/** Escape special ILIKE pattern characters so the value matches literally.
+ * Single-quote escaping is unnecessary here because the Supabase client
+ * uses parameterized queries under the hood; this only escapes LIKE
+ * metacharacters (%, _) that would otherwise act as wildcards.
+ */
+function escapeIlike(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
+}
 
-  await supabase.from("users").upsert(
+/**
+ * Returns true when `name` is not already used by another player.
+ * The check is case-insensitive, matching the unique DB index on lower(name).
+ */
+export async function checkUsernameAvailable(name: string, currentUserId: string): Promise<boolean> {
+  if (!supabase) return true;
+
+  const { data } = await supabase
+    .from("users")
+    .select("id")
+    .ilike("name", escapeIlike(name.trim()))
+    .neq("id", currentUserId)
+    .limit(1);
+
+  return !data?.length;
+}
+
+/**
+ * Syncs the local player profile to Supabase.
+ * Returns `{ error }` with a user-facing message when the username is already taken.
+ */
+export async function ensurePlayerInSupabase(player: PlayerProfile): Promise<{ error?: string }> {
+  if (!supabase) return {};
+
+  const { error } = await supabase.from("users").upsert(
     {
       id: player.id,
       name: player.name,
@@ -84,4 +116,10 @@ export async function ensurePlayerInSupabase(player: PlayerProfile) {
     },
     { onConflict: "id" }
   );
+
+  if (error?.code === "23505") {
+    return { error: "Username already taken. Please choose a different name." };
+  }
+
+  return {};
 }
