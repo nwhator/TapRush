@@ -23,7 +23,7 @@ import type { GameColorToken, GameMode } from "@/types";
 
 type OverlayState = "idle" | "success" | "fail";
 
-type Phase = "home" | "countdown" | "playing" | "failed";
+type Phase = "home" | "countdown" | "playing" | "failed" | "result";
 type RoundState = "relay" | "live";
 type FailReason = "wrong_tap" | "hesitation" | "early_tap";
 
@@ -276,6 +276,7 @@ export function GameRunner({ mode }: GameRunnerProps) {
       setNewBest(false);
     }
 
+    setPhase("result");
     trackEvent("run_failed", { level: finalLevel, score: finalScore, mode, reason });
   }, [challenge.date, clearTimers, mode, playSound, vibrate]);
 
@@ -617,6 +618,19 @@ export function GameRunner({ mode }: GameRunnerProps) {
       ) : null}
 
       {phase === "failed" ? (
+        <div className="mx-auto mt-6 flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4">
+          <div className="rounded-3xl bg-rose-500/12 p-6 text-center shadow-[0_0_40px_rgba(244,63,94,0.22)]">
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-soft">Run Ended</p>
+            <h2 className="mt-2 text-5xl font-black">{score.toLocaleString()}</h2>
+            <p className={"mt-3 text-xs font-semibold " + (failReason === "hesitation" ? "text-amber-200" : "text-rose-200")}>
+              {failReason === "hesitation" ? "You hesitated too long." : failReason === "early_tap" ? "Too early. Wait for GO." : "Wrong color tapped."}
+            </p>
+            <p className="mt-3 text-xs text-soft">Saving your results…</p>
+          </div>
+        </div>
+      ) : null}
+
+      {phase === "result" ? (
         <div className="mx-auto mt-6 flex w-full max-w-md flex-1 flex-col justify-center gap-4">
           <div className="relative rounded-3xl bg-rose-500/12 p-5 text-center shadow-[0_0_40px_rgba(244,63,94,0.18)]">
             {newBest ? (
@@ -652,7 +666,7 @@ export function GameRunner({ mode }: GameRunnerProps) {
                 disabled={attemptsLeft <= 0}
                 className="kinetic-button w-full rounded-full px-4 py-4 text-sm font-black uppercase tracking-[0.2em] disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {attemptsLeft <= 0 ? "No Attempts Left Today" : "Instant Restart"}
+                {attemptsLeft <= 0 ? "No Attempts Left Today" : "Play Again"}
               </button>
               <button
                 type="button"
