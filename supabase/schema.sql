@@ -125,6 +125,58 @@ create unique index if not exists scores_user_mode_daily_uniq
   on public.scores (user_id, mode, challenge_date)
   where challenge_date is not null;
 
+-- Consolidate score writes so DB always keeps one best row per user scope.
+-- Arcade scope key: (user_id, mode='arcade')
+-- Daily scope key: (user_id, mode='daily', challenge_date)
+create or replace function public.merge_best_score_row()
+returns trigger
+language plpgsql
+as $$
+declare
+  existing_id bigint;
+begin
+  if new.mode = 'daily' then
+    select s.id
+      into existing_id
+    from public.scores s
+    where s.user_id = new.user_id
+      and s.mode = 'daily'
+      and s.challenge_date = new.challenge_date
+    order by s.id desc
+    limit 1;
+  else
+    select s.id
+      into existing_id
+    from public.scores s
+    where s.user_id = new.user_id
+      and s.mode = 'arcade'
+      and s.challenge_date is null
+    order by s.id desc
+    limit 1;
+  end if;
+
+  if existing_id is null then
+    return new;
+  end if;
+
+  update public.scores s
+  set
+    level_reached = greatest(s.level_reached, new.level_reached),
+    score_value = greatest(s.score_value, new.score_value),
+    attempt_count = s.attempt_count + coalesce(new.attempt_count, 1),
+    created_at = now()
+  where s.id = existing_id;
+
+  return null;
+end;
+$$;
+
+drop trigger if exists trg_merge_best_score_row on public.scores;
+create trigger trg_merge_best_score_row
+before insert on public.scores
+for each row
+execute function public.merge_best_score_row();
+
 alter table public.users enable row level security;
 alter table public.scores enable row level security;
 alter table public.daily_challenges enable row level security;
@@ -177,4 +229,20 @@ for update to anon, authenticated
 using (true)
 with check (true);
 
-alter publication supabase_realtime add table public.scores;
+do $$
+begin
+  if exists (
+    select 1
+    from pg_publication
+    where pubname = 'supabase_realtime'
+  ) and not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'scores'
+  ) then
+    alter publication supabase_realtime add table public.scores;
+  end if;
+end
+$$;
