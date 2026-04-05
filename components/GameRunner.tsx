@@ -510,42 +510,38 @@ export function GameRunner({ mode }: GameRunnerProps) {
       ) : null}
 
       {phase === "playing" ? (
-        <div className="mx-auto mt-2 flex w-full max-w-md flex-1 overflow-hidden">
-          <div className="relative flex-1">
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-20 space-y-2">
-              <ScoreDisplay score={score} best={best} />
-              <LevelIndicator level={level} streak={streak} />
+        <div className="mx-auto mt-2 flex w-full max-w-md flex-1 flex-col gap-2 overflow-hidden">
+          <div className="space-y-2">
+            <ScoreDisplay score={score} best={best} />
+            <LevelIndicator level={level} streak={streak} />
 
-              <div className="grid grid-cols-3 gap-2 rounded-2xl bg-black/25 p-3 text-center">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Combo</p>
-                  <p className="mt-1 text-lg font-black">{combo}x</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Multiplier</p>
-                  <p className="mt-1 text-lg font-black text-cyan-200">x{multiplier}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Speed</p>
-                  <p className="mt-1 text-lg font-black uppercase">{speedLabel}</p>
-                </div>
+            <div className="grid grid-cols-3 gap-2 rounded-2xl bg-black/25 p-3 text-center">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Combo</p>
+                <p className="mt-1 text-lg font-black">{combo}x</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Multiplier</p>
+                <p className="mt-1 text-lg font-black text-cyan-200">x{multiplier}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Speed</p>
+                <p className="mt-1 text-lg font-black uppercase">{speedLabel}</p>
               </div>
             </div>
+          </div>
 
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="relative h-full w-full rounded-3xl bg-[color-mix(in_srgb,var(--surface-low)_92%,transparent)] p-3">
-                <AnimationOverlay state={overlay} />
-                <TapArea
-                  activeColor={activeColor}
-                  forbiddenColor={forbiddenColor}
-                  active={roundState === "live"}
-                  relayState={roundState}
-                  pulseRuleChange={pulseRuleChange}
-                  onTap={onTap}
-                  disabled={phase !== "playing"}
-                />
-              </div>
-            </div>
+          <div className="relative min-h-0 flex-1 rounded-3xl bg-[color-mix(in_srgb,var(--surface-low)_92%,transparent)] p-3">
+            <AnimationOverlay state={overlay} />
+            <TapArea
+              activeColor={activeColor}
+              forbiddenColor={forbiddenColor}
+              active={roundState === "live"}
+              relayState={roundState}
+              pulseRuleChange={pulseRuleChange}
+              onTap={onTap}
+              disabled={phase !== "playing"}
+            />
 
             <p className="pointer-events-none absolute inset-x-0 bottom-1 text-center text-[11px] font-black uppercase tracking-[0.2em] text-soft">
               {roundState === "relay"
