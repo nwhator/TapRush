@@ -146,7 +146,7 @@ export function GameRunner({ mode }: GameRunnerProps) {
 
   const pulseRule = useCallback(() => {
     setPulseRuleChange(true);
-    overlayTimer.current = window.setTimeout(() => setPulseRuleChange(false), 320);
+    overlayTimer.current = window.setTimeout(() => setPulseRuleChange(false), 100);
   }, []);
 
   const vibrate = useCallback((pattern: number | number[]) => {
@@ -683,7 +683,7 @@ export function GameRunner({ mode }: GameRunnerProps) {
         </div>
       ) : null}
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/35 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-linear-to-t from-black/35 to-transparent" />
     </section>
   );
 }

@@ -28,7 +28,11 @@ export async function submitScore(input: {
     .from("scores")
     .select("id, level_reached, score_value, attempt_count")
     .eq("user_id", input.userId)
-    .eq("mode", input.mode);
+    .eq("mode", input.mode)
+    .order("score_value", { ascending: false })
+    .order("level_reached", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(1);
 
   if (input.challengeDate) {
     existingQuery = existingQuery.eq("challenge_date", input.challengeDate);
@@ -36,23 +40,19 @@ export async function submitScore(input: {
     existingQuery = existingQuery.is("challenge_date", null);
   }
 
-  const { data: existing } = await existingQuery.maybeSingle();
+  const { data: existing, error: existingError } = await existingQuery.maybeSingle();
+  if (existingError) {
+    console.error("[submitScore] failed to fetch existing score row:", existingError.message);
+    return;
+  }
 
   if (existing) {
-    // Always increment the attempt counter.
-    // Update level/score only when the new result is strictly better.
-    const isBetter =
-      input.level > existing.level_reached ||
-      (input.level === existing.level_reached && input.score > existing.score_value);
-
+    // Keep the best score and best level while still counting every attempt.
     const updateData: Record<string, unknown> = {
+      level_reached: Math.max(existing.level_reached ?? 0, input.level),
+      score_value: Math.max(existing.score_value ?? 0, input.score),
       attempt_count: (existing.attempt_count ?? 1) + 1
     };
-
-    if (isBetter) {
-      updateData.level_reached = input.level;
-      updateData.score_value = input.score;
-    }
 
     const { error: updateError } = await supabase.from("scores").update(updateData).eq("id", existing.id);
     if (updateError) {
@@ -80,8 +80,8 @@ export async function fetchLeaderboard(mode: GameMode, challengeDate?: string, l
     .from("scores")
     .select("id, user_id, level_reached, score_value, mode, challenge_date, created_at, users(name, avatar)")
     .eq("mode", mode)
-    .order("level_reached", { ascending: false })
     .order("score_value", { ascending: false })
+    .order("level_reached", { ascending: false })
     .limit(limit);
 
   if (challengeDate) {

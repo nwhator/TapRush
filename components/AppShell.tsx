@@ -8,7 +8,6 @@ import { BrandLogo } from "@/components/BrandLogo";
 const navItems = [
   { href: "/", label: "Home" },
   { href: "/leaderboard", label: "Leaders" },
-  { href: "/daily", label: "Daily" },
   { href: "/settings", label: "Settings" }
 ];
 
