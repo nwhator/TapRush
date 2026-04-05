@@ -36,7 +36,7 @@ interface GameRunnerProps {
 }
 
 const DAILY_ATTEMPT_KEY = "taprush:dailyAttempts:v2";
-const DAILY_ATTEMPTS_MAX = 8;
+const DAILY_ATTEMPTS_MAX = 20;
 const BEST_KEY = "taprush:best";
 const COUNTDOWN_STEPS = ["3", "2", "1", "GO!"];
 const COUNTDOWN_MS = 1800;
@@ -510,43 +510,49 @@ export function GameRunner({ mode }: GameRunnerProps) {
       ) : null}
 
       {phase === "playing" ? (
-        <div className="mx-auto mt-3 flex w-full max-w-md flex-1 flex-col gap-3 overflow-hidden">
-          <ScoreDisplay score={score} best={best} />
-          <LevelIndicator level={level} streak={streak} />
+        <div className="mx-auto mt-2 flex w-full max-w-md flex-1 overflow-hidden">
+          <div className="relative flex-1">
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-20 space-y-2">
+              <ScoreDisplay score={score} best={best} />
+              <LevelIndicator level={level} streak={streak} />
 
-          <div className="grid grid-cols-3 gap-2 rounded-2xl bg-black/25 p-3 text-center">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Combo</p>
-              <p className="mt-1 text-lg font-black">{combo}x</p>
+              <div className="grid grid-cols-3 gap-2 rounded-2xl bg-black/25 p-3 text-center">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Combo</p>
+                  <p className="mt-1 text-lg font-black">{combo}x</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Multiplier</p>
+                  <p className="mt-1 text-lg font-black text-cyan-200">x{multiplier}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Speed</p>
+                  <p className="mt-1 text-lg font-black uppercase">{speedLabel}</p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Multiplier</p>
-              <p className="mt-1 text-lg font-black text-cyan-200">x{multiplier}</p>
+
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="relative h-full w-full rounded-3xl bg-[color-mix(in_srgb,var(--surface-low)_92%,transparent)] p-3">
+                <AnimationOverlay state={overlay} />
+                <TapArea
+                  activeColor={activeColor}
+                  forbiddenColor={forbiddenColor}
+                  active={roundState === "live"}
+                  relayState={roundState}
+                  pulseRuleChange={pulseRuleChange}
+                  onTap={onTap}
+                  disabled={phase !== "playing"}
+                />
+              </div>
             </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Speed</p>
-              <p className="mt-1 text-lg font-black uppercase">{speedLabel}</p>
-            </div>
+
+            <p className="pointer-events-none absolute inset-x-0 bottom-1 text-center text-[11px] font-black uppercase tracking-[0.2em] text-soft">
+              {roundState === "relay"
+                ? "Get ready"
+                : `React in ${Math.round(reactionWindow)}ms • If color is ${colorLabel(forbiddenColor)}, do not tap`}
+            </p>
           </div>
-
-          <div className="relative flex-1 rounded-3xl bg-[color-mix(in_srgb,var(--surface-low)_92%,transparent)] p-3">
-            <AnimationOverlay state={overlay} />
-            <TapArea
-              activeColor={activeColor}
-              forbiddenColor={forbiddenColor}
-              active={roundState === "live"}
-              relayState={roundState}
-              pulseRuleChange={pulseRuleChange}
-              onTap={onTap}
-              disabled={phase !== "playing"}
-            />
-          </div>
-
-          <p className="text-center text-[11px] font-black uppercase tracking-[0.2em] text-soft">
-            {roundState === "relay"
-              ? "Get ready"
-              : `React in ${Math.round(reactionWindow)}ms • If color is ${colorLabel(forbiddenColor)}, do not tap`}
-          </p>
         </div>
       ) : null}
 
@@ -586,7 +592,6 @@ export function GameRunner({ mode }: GameRunnerProps) {
       ) : null}
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/35 to-transparent" />
-      <p className={"absolute left-4 top-16 text-[10px] font-black uppercase tracking-[0.2em] " + colorTextClass(forbiddenColor)}>Rule target: {colorLabel(forbiddenColor)}</p>
     </section>
   );
 }

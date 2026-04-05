@@ -41,26 +41,13 @@ export function TapArea({ activeColor, forbiddenColor, active, relayState, pulse
         : "shadow-[0_0_45px_rgba(34,211,238,0.45)]";
 
   return (
-    <div className="space-y-6">
-      <div
-        className={clsx(
-          "rounded-2xl border px-4 py-3 text-center",
-          "border-white/20 bg-black/25",
-          pulseRuleChange && "animate-pulse shadow-[0_0_20px_rgba(255,255,255,0.2)]"
-        )}
-      >
-        <p className="text-xs font-black uppercase tracking-[0.24em] text-soft">Rule</p>
-        <p className="mt-1 text-lg font-black uppercase tracking-[0.06em]">
-          DO NOT TAP <span className={clsx("drop-shadow-[0_0_10px_rgba(255,255,255,0.25)]", ruleColorClass)}>{colorLabel(forbiddenColor)}</span>
-        </p>
-      </div>
-
+    <div className="relative flex min-h-full w-full items-center justify-center">
       <button
         type="button"
         disabled={disabled}
         onClick={onTap}
         className={clsx(
-          "group relative mx-auto flex h-[52svh] w-full max-w-[26rem] items-center justify-center rounded-[2.5rem] border-4 border-white/20 transition duration-120 active:scale-[0.98]",
+          "group relative mx-auto flex h-[48svh] w-full max-w-[24rem] items-center justify-center rounded-[2.5rem] border-4 border-white/20 transition duration-120 active:scale-[0.98]",
           "touch-manipulation",
           disabled ? "opacity-70" : "opacity-100",
           colorSurfaceClass(activeColor, active),
@@ -69,6 +56,17 @@ export function TapArea({ activeColor, forbiddenColor, active, relayState, pulse
         )}
       >
         <span className="absolute -inset-4 rounded-[3rem] bg-cyan-300/8 blur-3xl" />
+        <span
+          className={clsx(
+            "absolute left-3 right-3 top-3 z-20 rounded-2xl border border-black/15 bg-black/20 px-3 py-2 text-center backdrop-blur-sm",
+            pulseRuleChange && "animate-pulse shadow-[0_0_22px_rgba(255,255,255,0.28)]"
+          )}
+        >
+          <span className="text-[10px] font-black uppercase tracking-[0.24em] text-black/60">Do Not Tap</span>
+          <span className={clsx("ml-2 text-base font-black uppercase tracking-[0.06em] drop-shadow-[0_0_10px_rgba(255,255,255,0.22)]", ruleColorClass)}>
+            {colorLabel(forbiddenColor)}
+          </span>
+        </span>
         {relayState === "relay" ? <span className="absolute inset-0 rounded-[2.5rem] bg-black/28" /> : null}
         <span className="relative text-center">
           <span className="block text-[11px] font-black uppercase tracking-[0.24em] text-black/60">Current Color</span>
