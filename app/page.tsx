@@ -21,24 +21,18 @@ export default function HomePage() {
         <div className="relative overflow-hidden rounded-3xl px-5 py-7 glass-card">
           <div className="absolute -right-8 -top-10 h-36 w-36 rounded-full bg-cyan-300/20 blur-3xl" />
           <div className="absolute -left-10 -bottom-14 h-40 w-40 rounded-full bg-pink-400/15 blur-3xl" />
-          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-soft">Mind Challenge Mode</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-soft">Reflex Challenge</p>
           <Image src="/logo-mark.svg" alt="TapRush logo" width={180} height={60} className="mt-2 h-auto w-[160px]" priority />
           <h1 className="mt-2 text-5xl font-black italic tracking-tight">
             TAP<span className="text-(--primary-strong)">RUSH</span>
           </h1>
-          <p className="mt-2 text-sm text-soft">Are your reflexes sharp enough for endless levels?</p>
-          <div className="mt-6 grid grid-cols-2 gap-3">
+          <p className="mt-2 text-sm text-soft">How far can your reflexes take you? Tap fast. Go further.</p>
+          <div className="mt-6">
             <Link
               href="/game"
-              className="kinetic-button rounded-full px-4 py-4 text-center text-xs font-black uppercase tracking-[0.2em]"
+              className="kinetic-button block w-full rounded-full px-4 py-4 text-center text-sm font-black uppercase tracking-[0.2em]"
             >
-              Start Arcade
-            </Link>
-            <Link
-              href="/daily"
-              className="rounded-full bg-(--surface-top) px-4 py-4 text-center text-xs font-black uppercase tracking-[0.2em] text-(--text)"
-            >
-              Daily Run
+              Play
             </Link>
           </div>
         </div>

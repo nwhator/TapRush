@@ -7,30 +7,43 @@ const headlineFont = Spline_Sans({ subsets: ["latin"], variable: "--font-headlin
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://taprush.vercel.app";
 
 export const metadata = {
-  title: "TapRush: Mind Games",
-  description: "Mobile-first infinite reaction game with social leaderboards.",
+  title: "TapRush – The Fast-Paced Reflex Game You Can't Put Down",
+  description:
+    "TapRush is a lightning-fast, infinitely replayable reaction game. Climb endless levels, crush the live leaderboard, and prove your reflexes are elite.",
   metadataBase: new URL(appUrl),
-  applicationName: "TapRush: Mind Games",
-  keywords: ["taprush", "reaction game", "mobile game", "leaderboard", "daily challenge"],
+  applicationName: "TapRush",
+  keywords: [
+    "taprush",
+    "reaction game",
+    "reflex game",
+    "fast-paced game",
+    "mobile arcade",
+    "leaderboard",
+    "daily challenge",
+    "tap game",
+    "skill game"
+  ],
   openGraph: {
     type: "website",
-    siteName: "TapRush: Mind Games",
-    title: "TapRush: Mind Games",
-    description: "Fast, addictive reaction game with infinite levels and live leaderboards.",
+    siteName: "TapRush",
+    title: "TapRush – Tap Fast. Go Further. Beat Everyone.",
+    description:
+      "Infinite levels. Lightning reflexes required. Compete on live global leaderboards and see how far you can really go.",
     url: "/",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "TapRush: Mind Games"
+        alt: "TapRush – Fast-paced reflex game"
       }
     ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "TapRush: Mind Games",
-    description: "Fast, addictive reaction game with infinite levels and live leaderboards.",
+    title: "TapRush – Tap Fast. Go Further. Beat Everyone.",
+    description:
+      "Infinite levels. Lightning reflexes required. Compete on live global leaderboards and see how far you can really go.",
     images: ["/twitter-image"]
   },
   icons: {
