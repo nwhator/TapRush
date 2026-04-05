@@ -13,20 +13,20 @@ create table if not exists public.users (
 
 -- Remove duplicate usernames (case-insensitive) before enforcing uniqueness.
 -- Keeps the earliest-created account; removes later duplicates.
+with duplicate_users as (
+  select
+    id,
+    row_number() over (
+      partition by lower(name)
+      order by created_at asc, id asc
+    ) as rn
+  from public.users
+  where name is not null
+)
 delete from public.users
-where id in (
-  select id from (
-    select
-      id,
-      row_number() over (
-        partition by lower(name)
-        order by created_at asc, id asc
-      ) as rn
-    from public.users
-    where name is not null
-  ) ranked
-  where rn > 1
-);
+using duplicate_users
+where public.users.id = duplicate_users.id
+  and duplicate_users.rn > 1;
 
 -- Case-insensitive unique username: prevents two users sharing the same name
 -- (e.g. "Spark_4" and "spark_4" are treated as the same name).
@@ -80,36 +80,36 @@ create index if not exists scores_daily_user_date_idx
 
 -- Arcade scope: keep highest score_value per (user_id, mode) where challenge_date is NULL.
 -- Tie-break: most recent created_at, then largest id.
+with duplicate_arcade as (
+  select
+    id,
+    row_number() over (
+      partition by user_id, mode
+      order by score_value desc, created_at desc, id desc
+    ) as rn
+  from public.scores
+  where challenge_date is null
+)
 delete from public.scores
-where id in (
-  select id from (
-    select
-      id,
-      row_number() over (
-        partition by user_id, mode
-        order by score_value desc, created_at desc, id desc
-      ) as rn
-    from public.scores
-    where challenge_date is null
-  ) ranked
-  where rn > 1
-);
+using duplicate_arcade
+where public.scores.id = duplicate_arcade.id
+  and duplicate_arcade.rn > 1;
 
 -- Daily scope: keep highest score_value per (user_id, mode, challenge_date).
+with duplicate_daily as (
+  select
+    id,
+    row_number() over (
+      partition by user_id, mode, challenge_date
+      order by score_value desc, created_at desc, id desc
+    ) as rn
+  from public.scores
+  where challenge_date is not null
+)
 delete from public.scores
-where id in (
-  select id from (
-    select
-      id,
-      row_number() over (
-        partition by user_id, mode, challenge_date
-        order by score_value desc, created_at desc, id desc
-      ) as rn
-    from public.scores
-    where challenge_date is not null
-  ) ranked
-  where rn > 1
-);
+using duplicate_daily
+where public.scores.id = duplicate_daily.id
+  and duplicate_daily.rn > 1;
 
 -- Drop old index names (from previous migrations) so re-runs are safe.
 drop index if exists public.scores_user_arcade_uniq;
