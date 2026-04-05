@@ -32,7 +32,7 @@ interface GameRunnerProps {
 }
 
 const DAILY_ATTEMPT_KEY = "taprush:dailyAttempts:v2";
-const DAILY_ATTEMPTS_MAX = 20;
+const DAILY_ATTEMPTS_MAX = 50;
 const BEST_KEY = "taprush:best";
 const COUNTDOWN_STEPS = ["3", "2", "1", "GO!"];
 const COUNTDOWN_MS = 1800;
