@@ -2,21 +2,13 @@ export type GameMode = "arcade" | "daily";
 
 export type ThemeMode = "neon" | "dark" | "light";
 
-export type CueKind = "tap_green" | "tap_blue" | "no_tap_red" | "reverse" | "sound_hint";
-
-export interface Cue {
-  id: string;
-  kind: CueKind;
-  label: string;
-  tapAllowed: boolean;
-  colorToken: "green" | "blue" | "red" | "amber";
-}
+export type GameColorToken = "red" | "blue" | "green" | "yellow" | "orange" | "purple" | "cyan";
 
 export interface DifficultyState {
   level: number;
   reactionWindowMs: number;
-  fakeOutProbability: number;
-  delayBeforeCueMs: number;
+  relayDelayMs: number;
+  ruleSwitchChance: number;
 }
 
 export interface ScoreRow {
