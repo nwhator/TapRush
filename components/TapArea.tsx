@@ -49,7 +49,7 @@ export function TapArea({ activeColor, forbiddenColor, active, relayState, pulse
         disabled={disabled}
         onClick={onTap}
         className={clsx(
-          "group relative mx-auto flex h-[48svh] w-full max-w-[24rem] items-center justify-center rounded-[2.5rem] border-4 border-white/20 transition duration-120 active:scale-[0.98]",
+          "group relative mx-auto flex h-[min(48svh,27rem)] w-full max-w-[24rem] items-center justify-center rounded-[2.5rem] border-4 border-white/20 transition duration-120 active:scale-[0.98]",
           "touch-manipulation",
           disabled ? "opacity-70" : "opacity-100",
           colorSurfaceClass(activeColor, active),

@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimationOverlay } from "@/components/AnimationOverlay";
-import { LevelIndicator } from "@/components/LevelIndicator";
-import { ScoreDisplay } from "@/components/ScoreDisplay";
 import { TapArea } from "@/components/TapArea";
 import { ShareButtons } from "@/components/ShareButtons";
 import { trackEvent } from "@/lib/analytics";
@@ -12,11 +10,9 @@ import { dailyChallengeConfig, ensureDailyChallenge, todayIsoDate } from "@/lib/
 import {
   buildColorPool,
   colorLabel,
-  colorTextClass,
   comboMultiplier,
   getDifficulty,
   pickColor,
-  speedPoints,
   speedTier,
   shouldSwitchRule
 } from "@/lib/game";
@@ -65,12 +61,14 @@ export function GameRunner({ mode }: GameRunnerProps) {
   const [rank, setRank] = useState<number | null>(null);
   const [newBest, setNewBest] = useState(false);
   const [failReason, setFailReason] = useState<FailReason>("wrong_tap");
+  const [roundPraise, setRoundPraise] = useState("");
 
   const roundStartRef = useRef(0);
   const rafRef = useRef<number | null>(null);
   const relayTimer = useRef<number | null>(null);
   const overlayTimer = useRef<number | null>(null);
   const countdownTimer = useRef<number | null>(null);
+  const praiseTimer = useRef<number | null>(null);
   const roundNonceRef = useRef(0);
   const levelRef = useRef(1);
   const streakRef = useRef(0);
@@ -81,12 +79,19 @@ export function GameRunner({ mode }: GameRunnerProps) {
   const activeRef = useRef<GameColorToken>("blue");
   const reactionWindowRef = useRef(0);
   const startingBestRef = useRef(0);
+  const endingRunRef = useRef(false);
 
   const challenge = useMemo(() => dailyChallengeConfig(), []);
   const attemptsLeft = Math.max(0, DAILY_ATTEMPTS_MAX - dailyAttemptsUsed);
 
+  const scoreFromTier = useCallback((tier: "fast" | "medium" | "slow" | "restraint", levelValue: number, multiplierValue = 1) => {
+    const speedBase = tier === "fast" ? 240 : tier === "medium" ? 180 : tier === "slow" ? 140 : 120;
+    const levelBoost = Math.max(0, levelValue - 1) * 70;
+    return Math.round((speedBase + levelBoost) * multiplierValue);
+  }, []);
+
   const playSound = useCallback(
-    (type: "tap" | "good" | "bad") => {
+    (type: "tap" | "good" | "bad" | "perfect") => {
       if (!soundsEnabled) return;
       if (typeof window === "undefined") return;
 
@@ -101,8 +106,8 @@ export function GameRunner({ mode }: GameRunnerProps) {
       oscillator.connect(gain);
       gain.connect(context.destination);
 
-      oscillator.type = type === "bad" ? "sawtooth" : "triangle";
-      oscillator.frequency.value = type === "tap" ? 300 : type === "good" ? 560 : 180;
+      oscillator.type = type === "bad" ? "sawtooth" : type === "perfect" ? "square" : "triangle";
+      oscillator.frequency.value = type === "tap" ? 300 : type === "good" ? 560 : type === "perfect" ? 760 : 180;
       gain.gain.value = 0.04;
 
       oscillator.start();
@@ -119,10 +124,12 @@ export function GameRunner({ mode }: GameRunnerProps) {
     if (relayTimer.current) window.clearTimeout(relayTimer.current);
     if (overlayTimer.current) window.clearTimeout(overlayTimer.current);
     if (countdownTimer.current) window.clearTimeout(countdownTimer.current);
+    if (praiseTimer.current) window.clearTimeout(praiseTimer.current);
     rafRef.current = null;
     relayTimer.current = null;
     overlayTimer.current = null;
     countdownTimer.current = null;
+    praiseTimer.current = null;
   }, []);
 
   const storeDailyAttempts = useCallback((userId: string, date: string, count: number) => {
@@ -187,7 +194,8 @@ export function GameRunner({ mode }: GameRunnerProps) {
           if (activeRef.current === forbiddenRef.current) {
             const nextLevel = levelRef.current + 1;
             const nextStreak = streakRef.current + 1;
-            const nextScore = scoreRef.current + 1;
+            const earned = scoreFromTier("restraint", levelRef.current);
+            const nextScore = scoreRef.current + earned;
             setLevel(nextLevel);
             setStreak(nextStreak);
             setScore(nextScore);
@@ -198,9 +206,10 @@ export function GameRunner({ mode }: GameRunnerProps) {
             setOverlay("success");
             playSound("good");
             vibrate(8);
+            setRoundPraise("Discipline!");
             setTapEnabled(false);
 
-            trackEvent("round_success", { mode, level: levelRef.current, score: nextScore, speed: "restraint" });
+            trackEvent("round_success", { mode, level: levelRef.current, score: nextScore, speed: "restraint", points: earned });
 
             levelRef.current = nextLevel;
             streakRef.current = nextStreak;
@@ -210,6 +219,7 @@ export function GameRunner({ mode }: GameRunnerProps) {
               setOverlay("idle");
               runRound();
             }, 140);
+            praiseTimer.current = window.setTimeout(() => setRoundPraise(""), 360);
             return;
           }
 
@@ -222,11 +232,19 @@ export function GameRunner({ mode }: GameRunnerProps) {
 
       rafRef.current = window.requestAnimationFrame(tick);
     }, diff.relayDelayMs);
-  }, [clearTimers, mode, playSound, pulseRule, vibrate]);
+  }, [clearTimers, mode, playSound, pulseRule, scoreFromTier, vibrate]);
 
   const failRound = useCallback(async (reason: FailReason) => {
+    if (endingRunRef.current) return;
+    endingRunRef.current = true;
     clearTimers();
     setTapEnabled(false);
+    const finalLevel = levelRef.current;
+    const finalScore = scoreRef.current;
+    const finalStreak = streakRef.current;
+    setLevel(finalLevel);
+    setScore(finalScore);
+    setStreak(finalStreak);
     setPhase("failed");
     setOverlay("fail");
     setFailReason(reason);
@@ -241,8 +259,8 @@ export function GameRunner({ mode }: GameRunnerProps) {
     }
     await submitScore({
       userId: player.id,
-      level: levelRef.current,
-      score: scoreRef.current,
+      level: finalLevel,
+      score: finalScore,
       mode,
       challengeDate: mode === "daily" ? challenge.date : undefined
     });
@@ -250,15 +268,15 @@ export function GameRunner({ mode }: GameRunnerProps) {
     const nextRank = await fetchPlayerRank(mode, player.id, mode === "daily" ? challenge.date : undefined);
     setRank(nextRank);
 
-    if (scoreRef.current > startingBestRef.current) {
+    if (finalScore > startingBestRef.current) {
       setNewBest(true);
-      setBest(scoreRef.current);
-      window.localStorage.setItem(BEST_KEY, String(scoreRef.current));
+      setBest(finalScore);
+      window.localStorage.setItem(BEST_KEY, String(finalScore));
     } else {
       setNewBest(false);
     }
 
-    trackEvent("run_failed", { level: levelRef.current, score: scoreRef.current, mode, reason });
+    trackEvent("run_failed", { level: finalLevel, score: finalScore, mode, reason });
   }, [challenge.date, clearTimers, mode, playSound, vibrate]);
 
   useEffect(() => {
@@ -366,8 +384,10 @@ export function GameRunner({ mode }: GameRunnerProps) {
     setForbiddenColor("red");
     setActiveColor("blue");
     setOverlay("idle");
+    setRoundPraise("");
     setRoundState("relay");
     setTapEnabled(false);
+    endingRunRef.current = false;
     setPhase("countdown");
 
     const startedAt = performance.now();
@@ -411,10 +431,9 @@ export function GameRunner({ mode }: GameRunnerProps) {
 
     const reactionMs = performance.now() - roundStartRef.current;
     const tier = speedTier(reactionMs, reactionWindowRef.current);
-    const base = speedPoints(tier);
     const nextCombo = tier === "fast" ? comboRef.current + 1 : 0;
     const nextMultiplier = comboMultiplier(nextCombo);
-    const earned = base * nextMultiplier;
+    const earned = scoreFromTier(tier, levelRef.current, nextMultiplier);
 
     const nextLevel = levelRef.current + 1;
     const nextStreak = streakRef.current + 1;
@@ -428,8 +447,9 @@ export function GameRunner({ mode }: GameRunnerProps) {
     setScore(nextScore);
     setSpeedLabel(tier);
     setOverlay("success");
-    playSound("good");
+    playSound(tier === "fast" ? "perfect" : "good");
     vibrate(10);
+    setRoundPraise(tier === "fast" ? "Perfect!" : tier === "medium" ? "Great!" : "Nice!");
 
     levelRef.current = nextLevel;
     streakRef.current = nextStreak;
@@ -448,7 +468,8 @@ export function GameRunner({ mode }: GameRunnerProps) {
       setOverlay("idle");
       runRound();
     }, 140);
-  }, [clearTimers, failRound, mode, phase, playSound, roundState, runRound, tapEnabled, vibrate]);
+    praiseTimer.current = window.setTimeout(() => setRoundPraise(""), 340);
+  }, [clearTimers, failRound, mode, phase, playSound, roundState, runRound, scoreFromTier, tapEnabled, vibrate]);
 
   function retry() {
     startGame();
@@ -459,9 +480,33 @@ export function GameRunner({ mode }: GameRunnerProps) {
     clearTimers();
     setPhase("home");
     setOverlay("idle");
+    setRoundPraise("");
     setRoundState("relay");
     setTapEnabled(false);
+    endingRunRef.current = false;
   }
+
+  const finishHeadline = newBest
+    ? "Well done! New Best!"
+    : score >= Math.max(1, Math.floor(best * 0.9))
+      ? "Great run!"
+      : score >= Math.max(1, Math.floor(best * 0.6))
+        ? "Good job, keep pushing!"
+        : "Nice try. Go again!";
+  const confettiLayout = [
+    { left: "6%", delay: "0ms", duration: "1300ms" },
+    { left: "14%", delay: "140ms", duration: "1200ms" },
+    { left: "22%", delay: "210ms", duration: "1320ms" },
+    { left: "31%", delay: "70ms", duration: "1260ms" },
+    { left: "39%", delay: "280ms", duration: "1370ms" },
+    { left: "47%", delay: "180ms", duration: "1210ms" },
+    { left: "55%", delay: "320ms", duration: "1410ms" },
+    { left: "63%", delay: "90ms", duration: "1230ms" },
+    { left: "71%", delay: "250ms", duration: "1340ms" },
+    { left: "79%", delay: "160ms", duration: "1280ms" },
+    { left: "87%", delay: "300ms", duration: "1400ms" },
+    { left: "94%", delay: "110ms", duration: "1240ms" }
+  ];
 
   return (
     <section className="relative flex h-dvh w-full flex-col overflow-hidden bg-[radial-gradient(circle_at_15%_0%,rgba(45,212,191,0.24),transparent_35%),radial-gradient(circle_at_85%_100%,rgba(244,63,94,0.18),transparent_42%)] px-4 pb-4 pt-5">
@@ -511,28 +556,32 @@ export function GameRunner({ mode }: GameRunnerProps) {
 
       {phase === "playing" ? (
         <div className="mx-auto mt-2 flex w-full max-w-md flex-1 flex-col gap-2 overflow-hidden">
-          <div className="space-y-2">
-            <ScoreDisplay score={score} best={best} />
-            <LevelIndicator level={level} streak={streak} />
-
-            <div className="grid grid-cols-3 gap-2 rounded-2xl bg-black/25 p-3 text-center">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Combo</p>
-                <p className="mt-1 text-lg font-black">{combo}x</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Multiplier</p>
-                <p className="mt-1 text-lg font-black text-cyan-200">x{multiplier}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Speed</p>
-                <p className="mt-1 text-lg font-black uppercase">{speedLabel}</p>
-              </div>
+          <div className="grid grid-cols-4 gap-2 rounded-2xl bg-black/20 p-2 text-center">
+            <div className="rounded-xl bg-black/25 py-2">
+              <p className="text-[9px] font-black uppercase tracking-[0.16em] text-soft">Score</p>
+              <p className="mt-1 text-base font-black">{score.toLocaleString()}</p>
+            </div>
+            <div className="rounded-xl bg-black/25 py-2">
+              <p className="text-[9px] font-black uppercase tracking-[0.16em] text-soft">Best</p>
+              <p className="mt-1 text-base font-black">{best.toLocaleString()}</p>
+            </div>
+            <div className="rounded-xl bg-black/25 py-2">
+              <p className="text-[9px] font-black uppercase tracking-[0.16em] text-soft">Level</p>
+              <p className="mt-1 text-base font-black">{level}</p>
+            </div>
+            <div className="rounded-xl bg-black/25 py-2">
+              <p className="text-[9px] font-black uppercase tracking-[0.16em] text-soft">Streak</p>
+              <p className="mt-1 text-base font-black">{streak}x</p>
             </div>
           </div>
 
           <div className="relative min-h-0 flex-1 rounded-3xl bg-[color-mix(in_srgb,var(--surface-low)_92%,transparent)] p-3">
             <AnimationOverlay state={overlay} />
+            {roundPraise ? (
+              <p className="pointer-events-none absolute inset-x-0 top-3 z-30 text-center text-sm font-black uppercase tracking-[0.18em] text-cyan-100 [text-shadow:0_0_16px_rgba(34,211,238,0.6)]">
+                {roundPraise}
+              </p>
+            ) : null}
             <TapArea
               activeColor={activeColor}
               forbiddenColor={forbiddenColor}
@@ -542,22 +591,55 @@ export function GameRunner({ mode }: GameRunnerProps) {
               onTap={onTap}
               disabled={phase !== "playing"}
             />
-
-            <p className="pointer-events-none absolute inset-x-0 bottom-1 text-center text-[11px] font-black uppercase tracking-[0.2em] text-soft">
-              {roundState === "relay"
-                ? "Get ready"
-                : `React in ${Math.round(reactionWindow)}ms • If color is ${colorLabel(forbiddenColor)}, do not tap`}
-            </p>
           </div>
+
+          <div className="grid grid-cols-3 gap-2 rounded-2xl bg-black/22 p-2 text-center">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Combo</p>
+              <p className="mt-1 text-base font-black">{combo}x</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Multiplier</p>
+              <p className="mt-1 text-base font-black text-cyan-200">x{multiplier}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Speed</p>
+              <p className="mt-1 text-base font-black uppercase">{speedLabel}</p>
+            </div>
+          </div>
+
+          <p className="text-center text-[10px] font-black uppercase tracking-[0.2em] text-soft">
+            {roundState === "relay"
+              ? "Get ready"
+              : `React in ${Math.round(reactionWindow)}ms • If color is ${colorLabel(forbiddenColor)}, do not tap`}
+          </p>
         </div>
       ) : null}
 
       {phase === "failed" ? (
         <div className="mx-auto mt-6 flex w-full max-w-md flex-1 flex-col justify-center gap-4">
-          <div className="rounded-3xl bg-rose-500/12 p-5 text-center shadow-[0_0_40px_rgba(244,63,94,0.18)]">
+          <div className="relative rounded-3xl bg-rose-500/12 p-5 text-center shadow-[0_0_40px_rgba(244,63,94,0.18)]">
+            {newBest ? (
+              <>
+                <div className="celebration-confetti" aria-hidden="true">
+                  {confettiLayout.map((piece, idx) => (
+                    <span
+                      key={`confetti-${idx}`}
+                      className="celebration-confetti-piece"
+                      style={{ left: piece.left, animationDelay: piece.delay, animationDuration: piece.duration }}
+                    />
+                  ))}
+                </div>
+                <div className="pointer-events-none absolute right-4 top-4 rounded-full border border-yellow-200/70 bg-yellow-300/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-yellow-100 crown-pulse">
+                  Crown Run
+                </div>
+              </>
+            ) : null}
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-soft">Run Complete</p>
             <h2 className="mt-2 text-4xl font-black">{score.toLocaleString()}</h2>
+            <p className="mt-2 text-sm font-semibold text-cyan-100">Session score: {score.toLocaleString()} pts</p>
             <p className="mt-2 text-sm text-soft">Best: {best.toLocaleString()} • Attempts left: {attemptsLeft}</p>
+            <p className="mt-2 text-sm font-black uppercase tracking-[0.16em] text-cyan-100">{finishHeadline}</p>
             <p className="mt-2 text-sm font-semibold text-rose-100">
               {newBest ? "New Best!" : score >= Math.max(1, Math.floor(best * 0.9)) ? "So close!" : "Reset and push harder."}
             </p>
